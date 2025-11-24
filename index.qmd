@@ -1,0 +1,50 @@
+---
+title: "Lecture Notes Draft"
+subtitle: "Diffusion Models for weather extremes prediction"
+author: Joe Bobby, Andrew Bierbower
+date: 2025-11-24
+type: "lecture notes"
+module: 1
+week: 1
+topics: ["Julia installation", "GitHub workflow", "Quarto basics"]
+objectives:
+  - "Show the working principle of diffusion models"
+  - "Explore applications of Diffusion models"
+ps_connection: "We attempt to show the utility of using Diffusion models for applications in weather inpainting and in temperature-precipitation modeling"
+
+engine: julia
+julia:
+  exeflags: ["+1.11"] # ensures version 1.11
+
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-block-bg: "#f8f8f8"
+    code-block-border-left: "#e1e4e5"
+    theme: simplex
+    number-sections: true
+    fig-format: svg
+    code-annotations: hover
+    code-line-numbers: true
+    date-format: "ddd., MMM. D"
+  typst:
+    fontsize: 11pt
+    margin: 
+      x: 1in
+      y: 1in
+    number-sections: true
+    fig-format: svg
+    code-line-numbers: true
+    footer: "{{< meta author >}}"
+    date-format: "ddd., MMM. D"
+
+execute: 
+  cache: true
+
+# Code formatting options
+code-overflow: wrap
+code-line-numbers: false
+code-block-font-size: "0.85em"
+---
+

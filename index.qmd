@@ -44,7 +44,53 @@ execute:
 
 # Code formatting options
 code-overflow: wrap
-code-line-numbers: false
+code-line-numbers: true
 code-block-font-size: "0.85em"
 ---
 
+## The Basics of Diffusion Modeling
+
+Diffusion models are a class of generative deep learning models (like GANs or VAEs), but function differently. They are probabilistic and model the entire distribution of possible outcomes, allowing for the generation of diverse, physically plausible realizations.
+
+They way they work is through the combination of a forward and backward process that destroys and created information respectively.
+
+Forward Process (Destroying information): Imagine taking a clear image (or climate map) and slowly adding Gaussian noise over many steps until it becomes pure static (random noise).
+
+Reverse Process (Creating Information): The neural network learns to reverse this process. It starts with pure noise and iteratively denoises it to reconstruct a plausible sample from the data distribution.
+
+## Forward Diffusion Formula in Quarto
+
+The noisy data at each of the forward steps can be modelled using a stochastic noising process. The equation describing the noisy data at time step $t$, $\mathbf{x}_t$, in terms of the original data, $\mathbf{x}_0$, and added noise, $\boldsymbol{\epsilon}$, is given by:
+
+$$
+\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \cdot \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \cdot \boldsymbol{\epsilon}
+$$
+
+### Key Variables
+
+* **$\mathbf{x}_t$**: The **noisy data** at time step $t$ (what the model sees during training).
+* **$\mathbf{x}_0$**: The **original, clean data** (the *signal*, e.g., the original daily temperature map).
+* **$\boldsymbol{\epsilon}$**: The **random noise** added (pure static), typically sampled from a standard normal distribution.
+* **$\bar{\alpha}_t$** (read as **alpha-bar sub $t$**): A **schedule value** between 0 and 1. It controls the **signal-to-noise ratio**. As $t$ increases (more steps of diffusion), $\bar{\alpha}_t$ **decreases**, resulting in less signal and more noise in $\mathbf{x}_t$.
+
+## The Reverse Process (Denoising)
+
+The **reverse process** is the **learning objective** of the diffusion model. The neural network, often a U-Net architecture, is trained to iteratively *undo* the noise added during the forward process. This approach makes sense because after the model has trained, given a completely noisy image, the reverse process has the ability to **sample the distribution of the domain** learnt by the model.
+
+It trains by trying to **predict the noise ($\boldsymbol{\epsilon}$)** that was added to $\mathbf{x}_0$ to create $\mathbf{x}_t$. If it can predict the noise perfectly, it can subtract it from $\mathbf{x}_t$ to reveal the clean, original image ($\mathbf{x}_0$).
+
+---
+
+### Loss Function (Mean Squared Error)
+
+The model's training objective is minimized using the following simple $\mathbf{L_2}$ loss function (Mean Squared Error), which measures the difference between the true noise and the predicted noise.
+
+$$
+\text{Loss} = || \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_{\theta}(\mathbf{x}_t, t) ||^2
+$$
+
+### Key Variables in the Loss
+
+* **$\boldsymbol{\epsilon}$**: The **actual noise** that was added (the **ground truth**).
+* **$\boldsymbol{\epsilon}_{\theta}(\mathbf{x}_t, t)$**: The neural network's **prediction** of the noise, where $\theta$ represents the network's trainable parameters, and the prediction depends on the noisy data $\mathbf{x}_t$ and the time step $t$.
+* **$|| \ldots ||^2$**: This is the **squared $\mathbf{L_2}$ norm** (Mean Squared Error). It calculates the square of the difference between the actual noise and the predicted noise across all dimensions (pixels/features). The model aims to drive this loss value **as close to zero as possible**.

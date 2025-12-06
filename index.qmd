@@ -6,7 +6,7 @@ date: 2025-11-24
 type: "lecture notes"
 module: 1
 week: 1
-topics: ["Julia installation", "GitHub workflow", "Quarto basics"]
+topics: ["Diffusion models"]
 objectives:
   - "Show the working principle of diffusion models"
   - "Explore applications of Diffusion models"
@@ -46,6 +46,8 @@ execute:
 code-overflow: wrap
 code-line-numbers: true
 code-block-font-size: "0.85em"
+
+bibliography: references.bib  # Path to your BibTeX file
 ---
 
 ## The Basics of Diffusion Modeling
@@ -94,3 +96,38 @@ $$
 * **$\boldsymbol{\epsilon}$**: The **actual noise** that was added (the **ground truth**).
 * **$\boldsymbol{\epsilon}_{\theta}(\mathbf{x}_t, t)$**: The neural network's **prediction** of the noise, where $\theta$ represents the network's trainable parameters, and the prediction depends on the noisy data $\mathbf{x}_t$ and the time step $t$.
 * **$|| \ldots ||^2$**: This is the **squared $\mathbf{L_2}$ norm** (Mean Squared Error). It calculates the square of the difference between the actual noise and the predicted noise across all dimensions (pixels/features). The model aims to drive this loss value **as close to zero as possible**.
+
+## Applications in Weather Extremes
+
+Based on recent discussions regarding the utility of diffusion models in climate science, we focus on two primary modeling approaches: probabilistic global forecasting and precipitation data inpainting.
+
+
+
+### Precipitation Data Inpainting
+
+The second application[@kishikawa2025conditionaldiffusionmodelsglobal] addresses the challenge of reconstructing global precipitation maps, which often suffer from extensive spatio-temporal gaps due to the orbital limitations of polar-orbiting satellites used by products like GSMaP and IMERG.
+  ![Alternative text for accessibility](images\Screenshot 2025-12-05 234114.png)
+  
+  Above is an example of forward and reverse diffusion processes applied to a global precipitation map. Forward diffusion corrupts the precipitation map sequence x0 by successive noise additions (upper), and reverse diffusion reconstructs the predicted sequence x0 through iterative denoising, restoring observed regions to their original values
+
+* **Conditional Diffusion Framework:**
+    This approach formulates the completion of precipitation maps as a **video inpainting task**[@videoinpaintingweatherreconstruction2024]. It utilizes a **Conditional Denoising Diffusion Probabilistic Model (DDPM)** backbone to generate physically consistent data for unobserved regions.
+    
+* **3D U-Net Architecture:**
+    Unlike 2D image models, this method employs a **3D U-Net architecture** with 3D convolutions. This allows the model to simultaneously capture spatial patterns and temporal dynamics, ensuring that the inpainted rainfall moves and evolves realistically over time.
+
+* **Multi-Modal Conditioning:**
+    To achieve high accuracy, the model does not guess blindly. It uses a **3D condition encoder** to incorporate multiple data sources as guidance:
+    * **Masked Precipitation Sequence:** The primary input containing known data.
+    * **Infrared (IR) Cloud Imagery:** Provides critical cues for cloud cover in regions where microwave sensors have gaps.
+    * **Topography (ETOPO):** Helps the model account for orographic effects (e.g., mountains forcing air up to create rain).
+    * **Spatio-Temporal Metadata:** Latitude, longitude, and physical time inputs ensure the weather patterns match the specific location and season.
+
+* **Advantages over Conventional Methods:**
+    Traditional methods like Inverse Distance Weighting (IDW)[@IDWerrorpropagationDEMfromanaloguetopographicalmap] or Kriging[@SHTILIYANOVA2017440] often produce overly smooth results that lack realistic texture and fail to capture complex storm structures. This diffusion-based approach outperforms them by generating sharp, high-fidelity precipitation fields that maintain both spatial and temporal continuity.
+
+* **Results:**
+    Some results from the paper [@kishikawa2025conditionaldiffusionmodelsglobal]:
+    ![Alternative text for accessibility](images\Screenshot 2025-12-05 234235.png)
+    
+    Comparison of the input masked sequence(left), the inpainted sequence(middle), and the groundtruth sequence(right), using example data from the ERA5 precipitation maps

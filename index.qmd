@@ -94,3 +94,49 @@ $$
 * **$\boldsymbol{\epsilon}$**: The **actual noise** that was added (the **ground truth**).
 * **$\boldsymbol{\epsilon}_{\theta}(\mathbf{x}_t, t)$**: The neural network's **prediction** of the noise, where $\theta$ represents the network's trainable parameters, and the prediction depends on the noisy data $\mathbf{x}_t$ and the time step $t$.
 * **$|| \ldots ||^2$**: This is the **squared $\mathbf{L_2}$ norm** (Mean Squared Error). It calculates the square of the difference between the actual noise and the predicted noise across all dimensions (pixels/features). The model aims to drive this loss value **as close to zero as possible**.
+
+## Comparison with Generative Adversarial Networks (GANs)
+
+To understand why diffusion models have become the standard for high-fidelity generation, it is helpful to contrast them with the previous dominant architecture: GANs.
+
+While diffusion models are **iterative sculptors** (slowly removing noise), GANs operate as a **forgery game** between two competing networks:
+1.  **The Generator:** Creates fake data to fool the discriminator.
+2.  **The Discriminator:** Tries to classify data as real or fake.
+
+| Feature | GANs (Adversarial) | Diffusion Models (Iterative) |
+| :--- | :--- | :--- |
+| **Mechanism** | Min-max game between two networks | Single network learning to reverse noise |
+| **Training Stability** | **Unstable**: Prone to "mode collapse" (generating the same image repeatedly) | **Stable**: Simple convex loss function (MSE) |
+| **Diversity** | Low: Often ignores rare edge cases | **High**: Captures the full distribution (critical for weather extremes) |
+| **Sampling Speed** | Fast (One step) | Slow (Many denoising steps) |
+
+## Case Study: DiffESM (Bassetti et al., 2024)
+
+In the context of this module, we examine *DiffESM: Conditional Emulation of Temperature and Precipitation in Earth System Models*. This paper demonstrates how diffusion models can be applied to **statistical downscaling** in climate science.
+
+### The Problem: Computational Cost
+Earth System Models (ESMs) rely on complex physics simulations (fluid dynamics, thermodynamics) that are computationally expensive. Running an ESM to simulate 100 years of daily weather for many different scenarios is often unfeasible. Existing cheap emulators often only output **monthly averages**, missing the "tails" of the distribution—extreme events like heat waves or dry spells.
+
+### The Solution: Conditional 3D Diffusion
+DiffESM uses a diffusion model to "super-resolve" time. It takes a low-resolution input (Monthly Mean) and generates a high-resolution output (Daily Sequence).
+
+#### 1. Architecture: The 3D U-Net
+Unlike standard image diffusion (which is 2D), DiffESM uses a **3D U-Net** to handle the temporal dimension.
+* **Dimensions:** $T \times H \times W$ (Time $\times$ Latitude $\times$ Longitude).
+* **Input:** A block of random Gaussian noise ($x_T$) representing 28 days of data.
+* **Conditioning ($c$):** The model is conditioned on the **Monthly Mean Map**. This map is concatenated to the noisy input at every step of the reverse process.
+
+#### 2. The Denoising "Physics"
+The model learns to transition from a **Random Distribution** (Gaussian noise) to a **Domain Distribution** (Physically plausible weather).
+* **Step 1:** The model sees 3D static.
+* **Step 500:** Vague structures appear. The model ensures spatial correlations (a storm spans multiple pixels).
+* **Step 1000:** A sharp, daily weather sequence emerges.
+* **Constraint:** Because of the conditioning ($c$), the average of the generated daily sequence mathematically aligns with the monthly mean provided.
+
+### Evaluating Extremes
+The authors tested DiffESM not just on pixel accuracy, but on its ability to replicate climate physics extremes using **Held-Out (HO)** sets:
+1.  **Kolmogorov-Smirnov (KS) Test:** Verifying the full distribution of values matches real ESMs.
+2.  **Temporal Metrics:** The model successfully reproduced **Hot Streaks** (consecutive hot days) and **Dry Spells** (consecutive days <1mm rain).
+3.  **Intensity:** It captured the **SDII** (Simple Precipitation Intensity Index), proving it generates intense storms rather than just constant drizzle.
+
+This demonstrates that diffusion models do not just "memorize" images; they learn the underlying **spatiotemporal statistics** of the physical system.

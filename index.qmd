@@ -161,13 +161,8 @@ Evaluating a generative model in science is different from evaluating art. We do
     * **Dry Spells:** Consecutive days with $<1$mm of rain.
     * Success here proves the 3D U-Net has learned the *temporal inertia* of weather systems—that a heat wave tends to last for days.
 
-## Applications in Weather Extremes
 
-Based on recent discussions regarding the utility of diffusion models in climate science, we focus on two primary modeling approaches: probabilistic global forecasting and precipitation data inpainting.
-
-
-
-### Precipitation Data Inpainting
+## Case Study: Precipitation Data Inpainting
 
 The second application[@kishikawa2025conditionaldiffusionmodelsglobal] addresses the challenge of reconstructing global precipitation maps, which often suffer from extensive spatio-temporal gaps due to the orbital limitations of polar-orbiting satellites used by products like GSMaP and IMERG.
   ![Alternative text for accessibility](images\Screenshot 2025-12-05 234114.png)
